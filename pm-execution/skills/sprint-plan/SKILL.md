@@ -1,6 +1,7 @@
 ---
 name: sprint-plan
 description: "Plan a sprint with capacity estimation, story selection, dependency mapping, and risk identification. Use when preparing for sprint planning, estimating team capacity, selecting stories, or balancing sprint scope against velocity."
+tool_integration: Atlassian
 ---
 
 ## Sprint Planning
@@ -18,12 +19,13 @@ If the user provides files (backlogs, velocity data, team rosters, or previous s
 1. **Estimate team capacity**:
    - Number of team members and their availability (PTO, meetings, on-call)
    - Historical velocity (average story points per sprint from last 3 sprints)
-   - Capacity buffer: reserve 15-20% for unexpected work, bugs, and tech debt
+   - Take into account orinial estiamte, start date and end date to know predictability
+   - Capacity buffer: reserve 10-15% for unexpected work, bugs, and tech debt
    - Calculate available capacity in story points or ideal hours
 
 2. **Review and select stories**:
    - Pull from the prioritized backlog (highest priority first)
-   - Verify each story meets the Definition of Ready (clear AC, estimated, no blockers)
+   - Verify each story meets the Definition of Ready (clear acceptance criteria, estimated, no blockers)
    - Flag stories that need refinement before committing
    - Stop adding stories when capacity is reached
 
