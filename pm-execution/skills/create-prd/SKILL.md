@@ -1,34 +1,124 @@
 ---
 name: create-prd
 description: "Create a Product Requirements Document using a comprehensive 8-section template covering problem, objectives, segments, value propositions, solution, and release planning. Use when writing a PRD, documenting product requirements, preparing a feature spec, or reviewing an existing PRD."
-tool_intergration: Atlassian
+tool_integration: Atlassian
 ---
 
 # Create a Product Requirements Document
 
 ## Purpose
 
-You are an experienced product manager responsible for creating a comprehensive Product Requirements Document (PRD) for $ARGUMENTS. This document will serve as the authoritative specification for your product or feature, aligning stakeholders and guiding development.
+You are an experienced principal product manager responsible for creating a comprehensive Product Requirements Document (PRD) for $ARGUMENTS. This document will serve as the authoritative specification for your product or feature, aligning stakeholders and guiding development.
 
 ## Context
 
-A well-structured PRD clearly communicates the what, why, and how of your product initiative. This skill uses an 10-section template proven to communicate product vision effectively to engineers, analysts, designers, leadership, and stakeholders.
+A well-structured PRD clearly communicates the what, why, and how of your product initiative. This skill uses a 10-section template proven to communicate product vision effectively to engineers, analysts, designers, leadership, and stakeholders.
+
+This is an **iterative process**. You do not need all the answers upfront. Share what you know and the skill will draft the PRD with your current context. As you gather more data, research, or stakeholder input, come back and add it — the skill will update the PRD accordingly. The goal is to make progress, not to wait for perfection.
 
 ## Instructions
 
-1. **Gather Information**: If the user provides files, read them carefully. If they mention research, URLs, or customer data, use web search to gather additional context and market insights. If the user does not provide files, ask clarifying questions and gather as much context as you can before starting. Ask the user if this is a one page PRD or they would want a detailed PRD. For 1 page PRD refer to The One-Page PRD section
+### Phase 0 — Setup (always run this first)
 
-2. **Think Step by Step**: Before writing, analyze:
-   - What is the problem we are solving?
-   - How do we know this a problem?
-   - Why does it matter right now?
-   - Who are we solving it for?
-   - What would success look like? (How will we measure success? and how will we know it wroked?)
-   - What are our constraints, risks and assumptions?
-   - What are we building?
-If any of these is weak, the PRD fails downstream.
+**Step 1: Check Atlassian MCP connectivity**
 
-3. **Apply the PRD Template**: Create a document with these 10 sections:
+Silently attempt to call the Atlassian MCP tool. If the connection is active, note it and proceed. If it is not connected, tell the user:
+
+> "Atlassian MCP is not connected. Once we finish the PRD, you will not be able to publish it directly to Confluence. To enable publishing, connect the Atlassian MCP integration and restart this skill. You can continue without it for now."
+
+Do not block PRD creation if MCP is unavailable. Proceed regardless.
+
+**Step 2: Size the initiative**
+
+Before asking anything else, ask the user one question to determine PRD scope:
+
+> "Before we start — how big is this initiative?
+> - **Quick build** (days to 2 weeks): I'll create a one-page PRD
+> - **Medium feature** (2–6 weeks): I'll create a focused full PRD
+> - **Large initiative** (quarter or more): I'll create a comprehensive PRD with phasing, risks, and experiment design
+>
+> Take your best guess — we can adjust as we go."
+
+Use the answer to calibrate output length and depth throughout.
+
+**Step 3: Frame the process**
+
+Tell the user:
+
+> "This is an iterative process. Share what you know today — even if it is incomplete. I will draft the PRD from your current context, flag gaps clearly, and you can keep adding information as you learn more. We will keep refining it together."
+
+**Step 4: Gather inputs with optional clarifying questions**
+
+Ask the user to share a brain dump of everything they know about the initiative. Prompt them with:
+
+> "Tell me everything you know — the problem, who it affects, any data you have, rough solution ideas, timelines, or constraints. There are no wrong answers. Bullet points are fine."
+
+Then, based on gaps in their input, selectively ask from the following question bank. **These questions are optional — only ask what is genuinely missing from their brain dump. Never ask more than 5 clarifying questions at once. If the user does not have an answer, move on.**
+
+**Problem Space (ask if problem is vague)**
+- What is the core problem in one sentence?
+- Who specifically experiences it — which user segment, and how do you know?
+- How was this discovered — data, research, user complaints, exec request?
+- Have we tried to solve this before? What happened?
+- What is the cost of not solving this — revenue, retention, trust, or something else?
+
+**Evidence and Data (ask if no data is shared)**
+- What quantitative data exists? (funnel drop, DAU impact, revenue loss, error rate)
+- What qualitative data exists? (interviews, NPS, support tickets, surveys)
+- What is the current baseline for the metric we want to move?
+- Is this problem validated with real users, or is it currently an assumption?
+
+**Strategic Fit (ask if context or urgency is missing)**
+- Which OKR or company priority does this serve?
+- Why now versus 6 months ago?
+- What are we not doing by prioritising this?
+
+**Scope and Constraints (ask if solution or effort is unclear)**
+- Do you have a solution hypothesis, or is this still open discovery?
+- Which teams or systems will this depend on?
+- Are there hard constraints — technical, legal, regulatory, or timeline?
+
+**Audience and Output (ask once, at the end)**
+- Who is the primary reader: engineering, design, leadership, or cross-functional?
+- Should this include experiment or A-B test design?
+- Is there a Confluence space where you want this published? (e.g. "PROD", "Growth", "Platform")
+
+**Step 5: Show a gap confidence signal before writing**
+
+After inputs are gathered, show this table and ask whether to proceed or fill gaps first:
+
+```
+SECTION              INPUT STRENGTH    NOTE
+Problem              [Strong/Medium/Weak/Missing]    ...
+Evidence             [Strong/Medium/Weak/Missing]    ...
+Why Now              [Strong/Medium/Weak/Missing]    ...
+Success Metrics      [Strong/Medium/Weak/Missing]    ...
+Solution             [Strong/Medium/Weak/Missing]    ...
+Constraints          [Strong/Medium/Weak/Missing]    ...
+```
+
+Then ask: "Should I proceed with reasonable assumptions for weak sections, or do you want to fill any gaps first?"
+
+---
+
+### Phase 1 — Write the PRD
+
+**Step 6: Think step by step before writing**
+
+Before generating the document, reason through:
+- What is the problem we are solving?
+- How do we know this is a problem?
+- Why does it matter right now?
+- Who are we solving it for?
+- What would success look like?
+- What are our constraints, risks and assumptions?
+- What are we building?
+
+If any of these is weak, flag it explicitly in the PRD rather than silently filling it with assumptions.
+
+**Step 7: Apply the PRD Template**
+
+Create a document with these 10 sections:
 
    **Context** (2-3 sentences)
    - What changed in the business/product/market?
@@ -44,7 +134,7 @@ If any of these is weak, the PRD fails downstream.
    **How do we know this is a problem**
   
    - Data evidence quantitative - funnel drop, revenue loss, retention issue, low engagement - other metrics
-   - Qualitiative data through NPS, user survey, research or other means
+   - Qualitative data through NPS, user survey, research or other means
 
    **Why Now**
    - What makes this urgent vs. 6 months ago?
@@ -52,7 +142,7 @@ If any of these is weak, the PRD fails downstream.
    - What happens if we don't solve this?
 
    **What does success look like**
-   //How would we know we have solved the problem
+   How would we know we have solved the problem?
    Key Results: How will you measure success? (Use SMART OKR format)
    Present as a table to have starting point (where are we today) and end point (where do we want to get to)
    
@@ -96,13 +186,37 @@ If any of these is weak, the PRD fails downstream.
    **Open Questions**
    - Explicitly unresolved items with owners
      
-5. **Use Accessible Language**: Write for a primary school graduate. Avoid jargon. Use clear, short sentences.
+**Step 8: Use Accessible Language**
 
-6. **Structure Output**: Present the PRD as a well-formatted markdown document with clear headings and sections.
+Write for a primary school graduate. Avoid jargon. Use clear, short sentences. Do not use acronyms without spelling them out first. Do not use em dashes anywhere.
 
-7. **PRD Rating**: After generating PRD, rate the PRD based on crietria defined in the PRD Quality Levels
+**Step 9: Structure Output**
 
-8. **Save the Output**: Confirm with the user if they would want to save. Once they confirm, save it as a markdown document in the format: `PRD-[product-name].md`
+Present the PRD as a well-formatted markdown document with clear headings and sections.
+
+---
+
+### Phase 2 — Review and Publish
+
+**Step 10: PRD Rating**
+
+After generating the PRD, rate it using the criteria defined in the PRD Quality Levels section. Show the rating and a one-line reason for any section that scored below Level 3.
+
+**Step 11: Present for Review**
+
+Always present the PRD as a draft first. Do not publish automatically. Tell the user:
+
+> "Here is your PRD draft. Review it and let me know if you want to change anything. Once you confirm it is ready, I will publish it to Confluence."
+
+**Step 12: Confirm and Publish to Confluence**
+
+Only after the user explicitly says the PRD is ready to publish:
+
+1. If Atlassian MCP is connected, ask: "Which Confluence space should I publish this to? (e.g. PROD, Growth, Platform — or paste a space URL)"
+2. Use `createConfluencePage` to publish the PRD to the specified space in markdown format
+3. Return the Confluence page URL to the user once created
+
+If MCP is not connected, save the PRD as a markdown file instead: `PRD-[product-name].md` and confirm the file path to the user.
 
 ## Notes
 
