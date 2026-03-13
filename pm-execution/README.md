@@ -2,7 +2,7 @@
 
 Execution and product management skills: PRDs, OKRs, roadmaps, sprints, pre-mortems, stakeholder maps, user stories, prioritization frameworks, and more.
 
-## Skills (15)
+## Skills (16)
 
 - **brainstorm-okrs** — Brainstorm team-level OKRs aligned with company objectives.
 - **create-prd** — Create a Product Requirements Document using a comprehensive 8-section template covering summary, background, objectives, market segments, value propositions, solution details, and release planning.
@@ -11,6 +11,7 @@ Execution and product management skills: PRDs, OKRs, roadmaps, sprints, pre-mort
 - **outcome-roadmap** — Transform an output-focused roadmap into an outcome-focused one.
 - **pre-mortem** — Run a pre-mortem analysis on a PRD.
 - **prioritization-frameworks** — Reference guide to 9 prioritization frameworks with formulas, when-to-use guidance, and templates.
+- **prd-to-epics** — Convert a PRD into Jira-ready Epics and Stories using Job Story format with WWA strategic context. Reads from text, file, or Confluence; optional Figma URL for design context. Epic + Story level only — no tasks.
 - **release-notes** — Generate user-facing release notes from tickets, PRDs, or changelogs.
 - **retro** — Facilitate a structured sprint retrospective.
 - **sprint-plan** — Plan a sprint with capacity estimation, story selection, dependency mapping, and risk identification.
@@ -20,11 +21,12 @@ Execution and product management skills: PRDs, OKRs, roadmaps, sprints, pre-mort
 - **user-stories** — Create user stories following the 3 C's (Card, Conversation, Confirmation) and INVEST criteria with descriptions, design links, and acceptance criteria.
 - **wwas** — Create product backlog items in Why-What-Acceptance format.
 
-## Commands (10)
+## Commands (11)
 
 - `/pm-execution:generate-data` — Generate realistic dummy datasets for testing — CSV, JSON, SQL inserts, or Python scripts.
 - `/pm-execution:meeting-notes` — Summarize a meeting transcript into structured notes with decisions, action items, and follow-ups.
 - `/pm-execution:plan-okrs` — Brainstorm team-level OKRs aligned with company objectives — qualitative objectives with measurable key results.
+- `/pm-execution:prd-to-epics` — Convert a PRD into Jira-ready Epics and Stories — reads from text, file, or Confluence; optional Figma URL for design context. Job Story format with strategic WHY. Epic + Story level only, no tasks.
 - `/pm-execution:pre-mortem` — Run a pre-mortem risk analysis on a PRD, launch plan, or feature — identify what could go wrong before it does.
 - `/pm-execution:sprint` — Sprint lifecycle — plan a sprint, run a retrospective, or generate release notes.
 - `/pm-execution:stakeholder-map` — Map stakeholders on a Power × Interest grid and create a tailored communication plan.
