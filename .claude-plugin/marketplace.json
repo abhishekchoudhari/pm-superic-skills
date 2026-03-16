@@ -56,6 +56,12 @@
       "description": "PM utility skills: resume review, NDA drafting, privacy policy generation, and grammar/flow checking. Essential tools for product managers beyond core product work.",
       "source": "./pm-toolkit",
       "category": "product-management"
+    },
+    {
+      "name": "pm-project-management",
+      "description": "Expert PM tracker for managing external vendor initiatives via Gmail and Google Sheets. Syncs email threads to structured trackers, scores risk with a weighted rubric, and sends daily summaries. Built for product managers tracking external dependencies.",
+      "source": "./pm-project-management",
+      "category": "project-management"
     }
   ]
 }

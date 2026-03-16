@@ -1,0 +1,20 @@
+{
+  "name": "pm-project-management",
+  "version": "1.0.0",
+  "description": "Expert PM tracker for managing external vendor initiatives via Gmail and Google Sheets. Syncs email threads to structured trackers, scores risk with weighted rubric, and sends daily summaries. Specialized for product managers tracking external dependencies.",
+  "author": {
+    "name": "Abhishek Choudhari",
+    "url": "https://www.linkedin.com/in/abhishekchoudhari/"
+  },
+  "keywords": [
+    "project-management",
+    "gmail",
+    "google-sheets",
+    "vendor-tracking",
+    "pm",
+    "gsuite",
+    "tracker",
+    "email-sync"
+  ],
+  "license": "MIT"
+}
