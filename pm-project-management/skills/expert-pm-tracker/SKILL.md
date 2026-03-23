@@ -20,11 +20,41 @@ Always read from these sources at runtime. Never hardcode values.
 
 ---
 
+## Token and Context Efficiency Rules
+
+These rules apply to every phase. Follow them strictly.
+
+**Rule 1 — Read until you have enough context, stop at 10 messages.**
+For each thread, start with the most recent message and work backwards. After each message, check: do you have enough to fill Task, SPOC, ETA, and Status? If yes, stop. If any field is still missing or ambiguous, read the next earlier message. Stop at 10 messages regardless. Fields still missing after 10 messages are written as `Not enough context` in the sheet.
+
+**Rule 2 — On incremental runs, last message only.**
+On all syncs after the first bootstrap, start with the last message only. The bootstrap already captured prior context in the sheet. Only read further back (up to 10 messages) if the last message alone does not resolve a changed ETA or status signal.
+
+**Rule 3 — Gmail timestamp handles the delta.**
+On incremental runs, `after:<last_sync>` returns only threads with new activity. Do not apply additional logic to identify what has changed — the query result is already the delta.
+
+**Rule 4 — Batch all sheet writes.**
+Accumulate all cell changes across a sync run and execute them in a single batch write at the end. Never write row by row or cell by cell.
+
+**Rule 5 — Sheet reads are column-scoped on incremental runs.**
+On incremental runs, read only the Thread ID column to match incoming threads to existing rows. Do not load full row content unless the offline conversation check is triggered for a specific row.
+
+**Rule 6 — Cap threads per sync run.**
+Bootstrap: cap at 30 threads per initiative. Incremental: cap at 20 new threads per run. If the cap is hit, log the skipped count in Sync_Log and process the remainder on the next run.
+
+**Rule 7 — Discovery scans are metadata-only.**
+Vendor discovery (Setup Wizard Step B and Phase 3 Step 8) fetches subject lines and sender metadata only — no message bodies. Bodies are only loaded during a sync run for tracked threads.
+
+**Rule 8 — Deeper reads are always user-initiated.**
+Never automatically read beyond 10 messages. If a user asks to go deeper on a specific line item, read up to the full thread for that item only, on demand.
+
+---
+
 ## Phase 0 — Preflight (run on every invocation)
 
 ### Step 1: Check Google Workspace MCP
 
-Silently attempt a lightweight Google Workspace MCP call. If the connection fails or is not configured, stop immediately and output:
+Silently attempt a lightweight Google Workspace MCP call (`get_profile`). If the connection fails or is not configured, stop immediately and output:
 
 > "Google Workspace MCP is not connected. This skill requires it to read Gmail and write to Google Sheets.
 >
@@ -45,53 +75,172 @@ Read the authenticated Gmail account address. Extract the domain (e.g. `jupiter.
 Check if `~/.config/pm-project-management/config.json` exists.
 
 - If it exists: load it silently and proceed to Phase 1
-- If it does not exist: run the First Run Setup wizard below before anything else
+- If it does not exist: run the First Run Setup Wizard below
 
 **First Run Setup Wizard:**
 
+Only run after Steps 1 and 2 have confirmed MCP is connected and Gmail is accessible. Do not proceed if either check failed.
+
 Tell the user:
-> "This looks like your first time running the Expert PM Tracker. Let me get you set up. This will take about 5 minutes."
+> "This looks like your first time running the Expert PM Tracker. I'll scan your Gmail to understand who you're already talking to, then ask a few focused questions to set up your tracker. All fields are optional — skip anything you're unsure about."
 
-Ask in sequence:
+Ask the following steps in sequence, one at a time. Wait for a response before moving to the next step.
 
-1. **Anthropic API key** (required for the scheduler):
-   > "Do you have an Anthropic API key? This is needed for the scheduled sync that runs without Claude open.
-   > If not, here is how to create one:
-   > 1. Go to console.anthropic.com
-   > 2. Sign in or create an account
-   > 3. Navigate to API Keys in the left sidebar
-   > 4. Click 'Create Key', give it a name like 'pm-tracker-scheduler'
-   > 5. Copy the key — it starts with sk-ant-
-   > Paste it here when ready."
+---
 
-2. **Summary email recipient:**
-   > "What email address should the daily 10am summary go to? (Leave blank to use your connected Gmail account)"
+**Step A — Scan window:**
 
-3. **Existing work:**
-   > "Are you tracking any existing initiatives already, or is this fresh?
-   > - **Existing**: Share any Google Sheet URLs, email context, or initiative names you already have
-   > - **Fresh**: We will set up your first initiative together now"
+> "How far back should I look to understand your vendor activity?
+>
+> - **30 days** — recent threads only, faster scan (recommended for active projects)
+> - **60 days** — broader context, catches slower-moving threads
+> - **90 days** — full picture, good if some vendors have been quiet lately
+>
+> Reply with 30, 60, or 90. Press Enter to use 30 days."
 
-4. **Existing Sheets (if applicable):**
-   > "Paste any existing Google Sheet URLs you want to connect. I will read their current structure and align them with the tracker schema."
+Store the chosen value as `scan_lookback_days` in config. Use it as the lookback window for this discovery scan and for all future first-sync runs on new initiatives.
 
-5. **Existing initiatives:**
-   > "List the initiatives you are currently tracking with external vendors. For each, tell me: initiative name, vendor name(s), and a rough description. You can be brief — bullet points are fine."
+---
+
+**Step B — Silent Gmail discovery:**
+
+Silently scan Gmail for threads from external domains within the chosen window. Group by sender domain. Exclude: the company domain, noreply@, newsletter@, notifications@, support@, donotreply@, and any domain appearing only in automated digests. For each remaining domain, capture: vendor domain, thread count, most recent subject line, most recent date.
+
+Present results as a numbered list:
+
+> "Here's who you've been emailing externally in the last [N] days:
+>
+> 1. stripe.com — 4 threads — last: 'PCI doc request' (Mar 18)
+> 2. razorpay.com — 2 threads — last: 'Settlement API timeline' (Mar 15)
+> 3. deloitte.com — 3 threads — last: 'KYC framework review' (Mar 20)
+> [up to 10 vendors shown, sorted by most recent activity]
+>
+> Which of these are active vendor dependencies you want to track?
+> Reply with numbers (e.g. `1, 3`) or names. Add any vendors not listed above.
+> Skip any that are noise — you can always add them later."
+
+Wait for response. Store selected vendors.
+
+---
+
+**Step C — Group into initiatives:**
+
+> "How should I group these vendors into initiatives? An initiative is a goal or project you're driving with external help.
+>
+> Example:
+> - 'PaymentGateway' → Stripe, Razorpay
+> - 'ComplianceAudit' → Deloitte
+>
+> Tell me your initiative names and which vendors belong to each. Or say 'one per vendor' and I'll name them after each vendor."
+
+If user says 'one per vendor': create one initiative per selected vendor using the vendor's company name.
+
+---
+
+**Step D — Focus context per initiative (optional):**
+
+For each initiative, ask once:
+
+> "For **[InitiativeName]** — what are you trying to get from [vendor(s)]?
+>
+> Optionally add:
+> - Keywords or subject lines to focus on (e.g. 'API docs', 'compliance sign-off')
+> - Specific contacts to watch (e.g. john@stripe.com)
+> - A target deadline for this initiative (e.g. 'April 15' or 'end of Q2')
+>
+> Press Enter to scan all threads from this vendor with no filter."
+
+Store as `focus_context`, `focus_keywords`, `focus_contacts`, and `initiative_deadline` on the initiative. Keywords and contacts narrow the Gmail scan. The deadline is used in risk scoring to elevate all threads as the date approaches.
+
+---
+
+**Step E — Existing data import (optional):**
+
+> "Do you already have tracker data for any of these initiatives — in a Google Sheet, a spreadsheet, or even a rough list you can paste?
+>
+> - **Google Sheet URL**: paste it and I'll read the existing rows and map them into the tracker
+> - **Another spreadsheet**: paste the rows as text and I'll parse them
+> - **Rough notes**: describe what's in flight and I'll create rows from your description
+> - **Nothing yet**: I'll start fresh from your emails
+>
+> If you have existing data, this saves you re-entering what you already know."
+
+For each initiative where existing data is provided:
+- If Sheet URL: read all rows, map columns to the tracker schema as best as possible, ask the user to confirm the mapping before writing, do not delete or move columns in the source sheet
+- If pasted text: parse into rows, ask user to confirm before writing
+- If rough notes: extract tasks, vendors, statuses, ETAs from the text and pre-populate rows — mark each as `source: manual_import` so they are distinguishable from email-derived rows
+- If nothing: leave the sheet empty and let Phase 3 populate it from Gmail
+
+---
+
+**Step F — Google Sheets:**
+
+> "Should I create new Google Sheets for each initiative, or do you have existing ones to connect?
+>
+> Paste a Sheet URL next to an initiative to connect it. Leave blank for a new sheet.
+>
+> Example:
+> PaymentGateway → https://docs.google.com/spreadsheets/d/...
+> ComplianceAudit → (new)"
+
+For connected sheets: read current structure, check for required columns, ask permission to add missing columns without touching existing ones.
+For new sheets: create named after the initiative with the standard schema.
+
+---
+
+**Step G — Summary email (optional):**
+
+> "What email should the daily 10am progress summary go to?
+> Press Enter to use your connected Gmail: [gmail_address]"
+
+---
+
+**Step H — Anthropic API key (optional, scheduler only):**
+
+> "Last one — do you have an Anthropic API key? This is only needed for the automated scheduler that runs without Claude open. You can skip this now and add it when setting up the scheduler later.
+>
+> If you have one, paste it here (starts with sk-ant-). It will be stored locally at `~/.config/pm-project-management/.anthropic_key` and never committed to this repo."
+
+---
 
 Create `~/.config/pm-project-management/config.json` with this structure:
 
 ```json
 {
   "company_domain": "<derived from Gmail>",
-  "summary_email_recipient": "<email>",
+  "summary_email_recipient": "<email or gmail address>",
+  "scan_lookback_days": 30,
   "anthropic_api_key_path": "~/.config/pm-project-management/.anthropic_key",
-  "initiatives": {},
+  "initiatives": {
+    "PaymentGateway": {
+      "sheet_url": "https://docs.google.com/spreadsheets/...",
+      "vendors": {
+        "Stripe": "stripe.com",
+        "Razorpay": "razorpay.com"
+      },
+      "focus_context": "API integration and PCI compliance docs",
+      "focus_keywords": ["PCI", "settlement API", "integration doc"],
+      "focus_contacts": ["john@stripe.com"],
+      "initiative_deadline": "2026-04-15"
+    }
+  },
   "last_sync": {},
   "config_sheet_url": ""
 }
 ```
 
-Store the Anthropic API key separately in `~/.config/pm-project-management/.anthropic_key` (not in the main config JSON). Add both files to `.gitignore` if in a project directory.
+Store the Anthropic API key separately in `~/.config/pm-project-management/.anthropic_key`. Add both files to `.gitignore` if in a project directory.
+
+After completing all steps, confirm:
+
+> "All set. Here's what I've configured:
+> - [N] initiative(s): [list names and vendor counts]
+> - Sheets: [created / connected — list with URLs]
+> - Scan window: [N] days
+> - Summary email: [address]
+> - Scheduler: [API key saved / not yet — run Option E when ready]
+>
+> Ready to run your first sync? (Y / N)"
 
 ---
 
@@ -104,24 +253,25 @@ After preflight, ask the user:
 > - **B** — Sync and update a specific initiative
 > - **C** — Sync and update all initiatives
 > - **D** — View a live summary of all open items
-> - **E** — Set up or regenerate the Apps Script scheduler"
+> - **E** — Set up or regenerate the Apps Script scheduler
+> - **F** — Log offline context (meeting notes, Slack updates, call outcomes)
+> - **G** — Review new vendor threads detected in Gmail"
 
 Handle each path:
 
-**Path A — New initiative:**
-See Phase 2 below.
+**Path A — New initiative:** See Phase 2.
 
-**Path B — Specific initiative:**
-List initiatives from config. User selects one. Run Phase 3 for that initiative only.
+**Path B — Specific initiative:** List initiatives from config. User selects one. Run Phase 3 for that initiative only.
 
-**Path C — All initiatives:**
-Run Phase 3 for each initiative in config sequentially. Show a consolidated status at the end.
+**Path C — All initiatives:** Run Phase 3 for each initiative in config sequentially. Show consolidated status at the end. Also run Phase 3 Step 8 (new vendor detection) at the end.
 
-**Path D — Summary:**
-Jump directly to Phase 5. Do not sync. Just read current sheet state and display.
+**Path D — Summary:** Jump to Phase 5. Do not sync. Read current sheet state and display.
 
-**Path E — Scheduler:**
-Jump directly to Phase 6.
+**Path E — Scheduler:** Jump to Phase 6.
+
+**Path F — Offline context:** Jump to Phase 7.
+
+**Path G — New vendor review:** Surface any external domains detected in recent Gmail that are not in config (see Phase 3 Step 8). Ask the user which ones to add as new initiatives.
 
 ---
 
@@ -133,90 +283,108 @@ Ask:
 > "Tell me about this initiative:
 > - What is it called? (or I can suggest a name based on context)
 > - Which vendor or vendors are involved? List their company names.
-> - What is the goal — what are you trying to get from this vendor?
-> - Do you have an existing Google Sheet for this, or should I create a new one?"
+> - What are you trying to get from this vendor — what does 'done' look like?
+> - Is there a target deadline for this initiative? (optional)
+> - Do you have an existing Google Sheet, existing tracker data to import, or should I start fresh?"
 
-If the user is unsure of the initiative name, offer to derive it from recent emails: search Gmail for threads from external domains in the last 30 days, group by vendor domain, and suggest the top candidates with thread counts.
+If the user is unsure of the initiative name, offer to derive it from recent emails: search Gmail for threads from external domains using `scan_lookback_days`, group by vendor domain, and suggest the top candidates with thread counts.
 
 ### Step 2: Determine vendors
 
 For each vendor name provided:
 - Confirm or derive their email domain (e.g. `Stripe` → `stripe.com`)
-- Ask if there are multiple contacts at this vendor to watch, or just monitor the whole domain
+- Ask if there are specific contacts at this vendor to watch, or monitor the whole domain
+- Ask for any focus keywords or subject lines to narrow the scan (optional)
 
-### Step 3: Create or connect the Google Sheet
+### Step 3: Import existing data (optional)
+
+If the user has existing tracker data:
+- **Sheet URL**: Read all rows. Show a column mapping preview and ask the user to confirm before writing anything. Add any missing columns to the schema without touching existing ones.
+- **Pasted text / CSV**: Parse rows, show a preview, confirm before writing.
+- **Rough notes / description**: Extract tasks, statuses, ETAs, and SPOC names. Create rows tagged `source: manual_import`. Show a preview and confirm before writing.
+
+All imported rows are written with today's date in the current week's Update column and `source: manual_import` in the Thread ID column so they are distinguishable from email-synced rows.
+
+### Step 4: Create or connect the Google Sheet
 
 **If connecting an existing sheet:**
 - Read the sheet structure
-- Check if it has the required columns
-- If columns are missing, ask permission to add them
+- Check for required columns
+- Ask permission to add any missing columns
 - Do not delete or move existing columns
 
 **If creating a new sheet:**
-- Create a new Google Sheet named after the initiative (e.g. `PaymentGateway`)
-- Set up the schema (see Sheet Schema section below)
+- Create a new Google Sheet named after the initiative
+- Set up the schema (see Sheet Schema section)
 - Share the sheet URL with the user
 
-### Step 4: Update config
+### Step 5: Update config
 
-Add the new initiative to `~/.config/pm-project-management/config.json`:
-
-```json
-"initiatives": {
-  "PaymentGateway": {
-    "sheet_url": "https://docs.google.com/spreadsheets/...",
-    "vendors": {
-      "Stripe": "stripe.com",
-      "Razorpay": "razorpay.com"
-    },
-    "description": "Payment gateway integration for checkout v2"
-  }
-}
-```
+Add the new initiative to `~/.config/pm-project-management/config.json` with all fields from Step 1 and Step 2.
 
 Notify the user:
-> "Initiative added. Run the scheduler setup (Option E) to make sure this initiative is included in the next automated sync."
+> "Initiative added. Run the scheduler setup (Option E) to include this initiative in the next automated sync."
 
 ---
 
 ## Phase 3 — Scan and Sync
 
-### Step 1: Delta scan Gmail
+**Determine sync mode first.** Check two conditions for this initiative:
+1. Does the Google Sheet exist and contain at least one data row?
+2. Is `last_sync` set in config for this initiative?
 
-For each vendor domain in the initiative:
+If **both** are true → **Incremental mode** (skip to Step 3).
+If **either** is missing → **Bootstrap mode** (start at Step 1).
 
-- Read `last_sync` timestamp from config for this initiative
-- If no last sync exists (first run): set lookback to 30 days ago
-- Search Gmail: `from:@<vendor_domain> after:<last_sync_timestamp>`
-- Search both read and unread threads
-- For each thread returned: extract thread ID, subject, sender name, sender email, last message date, last message body (first 500 chars for context), thread permalink
+---
 
-### Step 2: Offline conversation check
+### Step 1: Bootstrap — build the tracker (first run only)
 
-Before updating any row, compare the Gmail thread state against the current sheet state:
+**Goal:** Read enough context to create a complete, accurate sheet. This is the only run where reading deeper into threads is expected.
 
-- Read all rows in the sheet for this vendor
-- For each existing row, check: does the sheet status suggest more progress than what the email thread shows?
+**Gmail query:** `from:@<vendor_domain>` within the last `scan_lookback_days` days (the user's chosen value — do not override it). Apply `focus_contacts` and `focus_keywords` filters if set. Cap at 30 threads per initiative.
 
-**If a discrepancy is found** (e.g. sheet says "In Review" but last email was 10 days ago with no update), ask the user:
+**For each thread:** Apply the context-reading rule (Token Rule 1) — start with the most recent message, read backwards until Task, SPOC, ETA, and Status can all be filled, or until 10 messages are read. Any field still unresolvable after 10 messages is written as `Not enough context`.
 
-> "I notice '[Task name]' is marked as '[Status]' in the tracker, but the last email from [Vendor] on this thread was [Date] and shows no corresponding update.
->
-> Was this updated from an offline conversation (call, Slack, in-person)?
-> - **Yes**: Tell me what was discussed and I will log it with today's date
-> - **No**: I will flag this row as needing verification
-> - **Skip**: Leave this row unchanged for now"
+**Extract per thread:**
+- Task description (infer from subject + body if not explicit)
+- SPOC name and email
+- ETA: any delivery date, deadline, or "by [date]" clause
+- Status: infer from tone and content (To Do / In Progress / Blocked / In Review / Solutionising)
+- Task category: Feature / Operations / Compliance / Risk
+- Last sender and date
+- Thread ID and permalink
 
-Only update the row after the user responds. Never silently overwrite manual tracker changes.
+**Write:** Construct all rows and write to the sheet in one batch. Populate the Thread ID column for every row — this is the deduplication key for all future incremental syncs.
 
-### Step 3: Match threads to rows
+**After writing:** Set `last_sync` to current UTC timestamp in config. This initiative is now in incremental mode for all future runs.
 
-For each Gmail thread returned:
+---
 
-- Match to an existing sheet row by thread ID (stored in the Email Thread column)
-- If a match is found: update `Updated ETA`, `Status`, and the current week's `Update <date>` column
-- If no match is found: this is a new thread — append a new row
-- For new rows, attempt to extract from the email: task description, any mentioned ETA, SPOC name
+### Step 2: Offline conversation check (bootstrap)
+
+After the batch write, read the Thread ID and Status columns only. If any rows were pre-populated from a manual import (Setup Wizard Step E), check whether the imported status is ahead of what the emails show. If so, ask the user:
+
+> "I notice '[Task name]' is marked as '[Status]' in the tracker, but the emails don't show a matching update. Was this from an offline conversation?
+> - **Yes**: Tell me what was discussed and I'll log it
+> - **No**: I'll flag this row as needing verification
+> - **Skip**: Leave it unchanged for now"
+
+---
+
+### Step 3: Incremental — delta sync (all runs after bootstrap)
+
+**Gate:** Only run if sheet exists AND `last_sync` is set. If either is missing, run Bootstrap instead.
+
+**Gmail query:** `from:@<vendor_domain> after:<last_sync_timestamp>`. Apply focus filters if set. This query returns only threads with new activity since the last sync — no additional delta logic needed. Cap at 20 threads per run; log skipped count if cap is hit.
+
+**For each returned thread:** Read the last message only. Apply Token Rule 2 — only read further back (up to 10 messages) if the last message alone leaves ETA or Status ambiguous.
+
+**Match to existing rows:** Read the Thread ID column only. If a thread ID matches an existing row, update that row. If no match, append a new row. Write all changes in one batch at the end.
+
+**Offline conversation check (incremental):** For rows being updated, check whether the current sheet Status is ahead of what the new email shows (manual update since last sync). Read the Status cell for those specific rows only. Apply the same check-and-ask as Step 2 above.
+
+**After writing:** Update `last_sync` to current UTC timestamp.
 
 ### Step 4: Risk scoring
 
@@ -239,12 +407,20 @@ Score = (0.30 × time_score) + (0.25 × eta_score) + (0.25 × tone_score) + (0.2
 **Tone and sentiment of last vendor email:**
 - Positive language, specific commitments, concrete next steps → 1 (Low)
 - Vague, non-committal, partial answers, promises without dates → 2 (Medium)
-- Deflecting, blame-shifting, silent for extended period, or negative language → 3 (High)
+- Deflecting, blame-shifting, extended silence, or negative language → 3 (High)
 
 **Thread velocity (reply frequency trend):**
 - Regular back-and-forth cadence → 1 (Low)
 - Replies noticeably slowing down → 2 (Medium)
-- One-sided thread, only your side is responding, or no recent vendor reply → 3 (High)
+- One-sided thread, only your side responding, or no recent vendor reply → 3 (High)
+
+**Initiative deadline modifier:**
+If `initiative_deadline` is set on the initiative, apply a deadline escalation:
+- More than 30 days to deadline: no modifier
+- 8 to 30 days to deadline: add +0.2 to every row's score in this initiative
+- Within 7 days to deadline: add +0.4 to every row's score in this initiative
+- Deadline passed: add +0.6 to every row's score in this initiative
+Cap the final score at 3.00.
 
 **Risk level thresholds:**
 - 1.00 – 1.67 → Low
@@ -271,6 +447,21 @@ Check the current week's `Update <date>` column header (format: `Update DD-Mon`,
 
 After a successful sync, write the current UTC timestamp to `last_sync` in config for this initiative.
 
+### Step 8: New vendor detection
+
+After syncing all configured initiatives, scan Gmail for external domains active in the last `scan_lookback_days` that are NOT in any current initiative config. Exclude the company domain and known noise (noreply, newsletters, etc.).
+
+If new external domains are found, surface them:
+
+> "I also spotted activity from vendors not currently being tracked:
+>
+> 1. newvendor.com — 3 threads — last: 'Contract terms discussion' (Mar 21)
+> 2. anotherco.com — 1 thread — last: 'Partnership proposal' (Mar 19)
+>
+> Want to add any of these to tracking? Reply with numbers, names, or 'skip' to ignore for now."
+
+If the user selects any: run Phase 2 for each selected vendor. If the user skips: note the domains in a `suggested_vendors` list in config so they can be reviewed later via Path G.
+
 ---
 
 ## Phase 4 — Multi-Initiative Handling
@@ -278,8 +469,9 @@ After a successful sync, write the current UTC timestamp to `last_sync` in confi
 When running sync across all initiatives (Path C):
 
 - Process each initiative sequentially
-- For each initiative, run Phase 3 in full
-- After all initiatives are processed, show a consolidated summary:
+- For each initiative, run Phase 3 Steps 1–7 in full
+- After all initiatives are processed, run Phase 3 Step 8 (new vendor detection) once
+- Show a consolidated summary:
 
 ```
 Sync complete — 3 initiatives updated
@@ -289,6 +481,8 @@ ComplianceAudit    → 2 threads scanned, 2 rows updated, 0 new rows
 OnboardingPartner  → 6 threads scanned, 3 rows updated, 2 new rows added
 
 High risk items: 3   Medium: 4   Low: 7
+
+New untracked vendors detected: 2 — run Option G to review
 ```
 
 ---
@@ -306,6 +500,12 @@ Open Items as of 16 Mar 2026 — 14 items across 3 initiatives
 🟡 [MED 1.8]  OnboardingPartner / Vendor X — Integration doc — ETA in 4 days — replies slowing
 🟢 [LOW 1.2]  PaymentGateway / Stripe — Webhook retry spec — open 1 day — vendor acknowledged, in progress
 ...
+```
+
+Also flag initiative-level deadline proximity:
+
+```
+⚠️  PaymentGateway deadline in 6 days (Apr 15) — 3 open items, 1 HIGH risk
 ```
 
 ---
@@ -331,13 +531,13 @@ Create a new Google Sheet called `PM_Tracker_Config` with two tabs:
 
 **Tab: Initiatives**
 ```
-| Initiative | Sheet URL | Vendor Name | Vendor Domain | Active |
+| Initiative | Sheet URL | Vendor Name | Vendor Domain | Focus Keywords | Initiative Deadline | Active |
 ```
-Populate from current config.
+Populate from current config. Store Sheet URL as a clickable hyperlink using the Sheets `=HYPERLINK(url, initiative_name)` formula — not plain text — so the user can navigate directly to each tracker from this sheet.
 
 **Tab: Sync_Log**
 ```
-| Timestamp | Initiative | Threads Scanned | Rows Updated | New Rows | Status |
+| Timestamp | Initiative | Threads Scanned | Rows Updated | New Rows | New Vendors Detected | Status |
 ```
 
 ### Step 3: Generate the Apps Script
@@ -348,7 +548,8 @@ Generate the complete Apps Script file customised for the user. The script must:
 - Store all secrets in `PropertiesService` (never inline)
 - Run `syncAll()` at 10am, 3pm, and 7pm
 - Run `sendDailySummary()` at 10am only
-- Use `UrlFetchApp` to call Claude API (`claude-sonnet-4-5`) for tone analysis
+- Use `UrlFetchApp` to call Claude API (`claude-sonnet-4-6`) for tone analysis
+- Apply initiative deadline modifier to risk scoring
 - Apply color coding via Sheets API
 - Handle weekly column rotation
 - Log each run to the Sync_Log tab
@@ -357,8 +558,6 @@ Generate the complete Apps Script file customised for the user. The script must:
 Provide the complete script as a code block the user can copy in full.
 
 ### Step 4: Deployment walkthrough
-
-Output step-by-step instructions:
 
 > **Deploy the Apps Script scheduler:**
 >
@@ -379,6 +578,60 @@ Output step-by-step instructions:
 
 ---
 
+## Phase 7 — Offline Context Logging
+
+Use when the user has context from outside email: a call, a Slack message, a meeting, an in-person conversation, or any other offline update.
+
+### Step 1: Identify the initiative and vendor
+
+Ask:
+> "Which initiative and vendor is this context for?
+> [List current initiatives and vendors]"
+
+### Step 2: Accept context input
+
+Ask:
+> "Paste or describe the context. This can be:
+> - Meeting notes or call summary
+> - A Slack message or screenshot description
+> - A status update you heard verbally
+> - An updated ETA or commitment from the vendor
+> - Any other offline information
+>
+> Be as detailed or as brief as you like — I'll extract what's relevant."
+
+### Step 3: Parse and preview
+
+Extract from the input:
+- Updated status or progress
+- Any new or revised ETA
+- Any new commitments or blockers
+- Names of people involved
+
+Show a preview:
+
+> "Here's what I'll log in the tracker:
+>
+> Initiative: PaymentGateway / Stripe
+> Task: PCI compliance doc
+> Update: Called John (Stripe) on Mar 21. Confirmed doc will be sent by Mar 24. Blocker was internal review — now cleared.
+> Updated ETA: Mar 24
+> Status: In Progress → In Review
+> Source: Offline (call)
+>
+> Does this look right? (Y / edit / skip)"
+
+### Step 4: Write to sheet
+
+After confirmation:
+- Find the matching row by initiative, vendor, and task description
+- If found: update Status, Updated ETA, and the current week's Update column with the parsed summary + "(offline)" tag
+- If not found: ask the user if this is a new task — if yes, create a new row tagged `source: manual_offline`
+- Recalculate risk score with the new context (tone and ETA updated)
+- Apply color coding
+
+---
+
 ## Sheet Schema
 
 One sheet per initiative. Sheet name = initiative name (e.g. `PaymentGateway`).
@@ -394,7 +647,8 @@ One sheet per initiative. Sheet name = initiative name (e.g. `PaymentGateway`).
 | Status | To Do / In Progress / Blocked / In Review / Solutionising / Done |
 | Risk Score | Weighted score + label, e.g. `2.4 — HIGH` (color coded) |
 | Email Thread | Gmail thread permalink |
-| Thread ID | Internal dedup key (hidden column, do not delete) |
+| Thread ID | Internal dedup key — do not delete (hidden column) |
+| Source | email-sync / manual_import / manual_offline — for auditability |
 | Update DD-Mon | Weekly update — overwritten daily for 7 days, new column each Monday |
 
 **Color coding for Risk Score cell:**
@@ -413,6 +667,12 @@ Body (HTML email, risk color-coded):
 ```
 Progress Tracker — 16 March 2026
 7 open items across 3 initiatives
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  DEADLINE ALERTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PaymentGateway — deadline in 6 days (Apr 15) — 3 open items
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔴 HIGH RISK (2 items)
