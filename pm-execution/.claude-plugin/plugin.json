@@ -1,7 +1,7 @@
 {
   "name": "pm-execution",
-  "version": "1.0.3",
-  "description": "Execution and product management skills: PRDs, OKRs, roadmaps, sprints, pre-mortems, stakeholder maps, user stories, prioritization frameworks, stakeholder updates, quarterly planning, and more.",
+  "version": "1.0.4",
+  "description": "Execution and product management skills: PRDs, PRD review (adaptive scorecard + CEO stress-test), PRD walkthrough capture, design briefs, OKRs, roadmaps, sprints, pre-mortems, stakeholder maps, user stories, prioritization frameworks, stakeholder updates, and quarterly planning.",
   "author": {
     "name": "Abhishek Choudhari",
     "url": "https://www.linkedin.com/in/abhishekchoudhari/"
@@ -17,7 +17,12 @@
     "user-stories",
     "backlog",
     "prioritization",
-    "agile"
+    "agile",
+    "prd-review",
+    "design-brief",
+    "walkthrough",
+    "confluence",
+    "jira"
   ],
   "license": "MIT"
 }

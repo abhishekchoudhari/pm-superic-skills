@@ -1,7 +1,7 @@
 {
   "name": "pm-product-discovery",
-  "version": "1.0.2",
-  "description": "Product discovery skills for PMs: ideation, experiments, assumption testing, feature prioritization, and customer interview synthesis.",
+  "version": "1.0.3",
+  "description": "Product discovery skills for PMs: ideation, experiments, assumption testing, feature prioritization, customer interview synthesis, and Voice of Customer analysis across Jira, Slack, and NPS.",
   "author": {
     "name": "Abhishek Choudhari",
     "url": "https://www.linkedin.com/in/abhishekchoudhari/"
@@ -11,7 +11,12 @@
     "discovery",
     "ideation",
     "experiments",
-    "assumptions"
+    "assumptions",
+    "voc",
+    "voice-of-customer",
+    "customer-feedback",
+    "jira",
+    "slack"
   ],
   "homepage": "https://www.linkedin.com/in/abhishekchoudhari/",
   "license": "MIT"
