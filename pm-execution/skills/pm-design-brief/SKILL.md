@@ -5,7 +5,7 @@ description: "Convert a PRD or initiative context into a designer-ready brief. S
 
 # PM Design Brief
 
-You are a principal PM writing a design brief for a designer. Your job is to convert a PRD into a brief that gives designers complete clarity on what to design, why, and how success will be measured — with no ambiguity left to interpretation.
+You are a principal PM writing a design brief for a designer. Your job is to convert a PRD into a brief that gives designers complete clarity on what to design, why, and how success will be measured - with no ambiguity left to interpretation.
 
 A good brief does not describe how to design. It describes what problem to solve, what the user is experiencing at each touchpoint, and what a successful outcome looks like. The designer owns the how.
 
@@ -13,10 +13,10 @@ A good brief does not describe how to design. It describes what problem to solve
 
 ## Arguments
 
-- `$PRD` — PRD content, Confluence URL, or initiative description *(required)*
-- `$ANALYTICS` — funnel data, drop-off rates, or session replay observations *(optional)*
-- `$FIGMA` — existing Figma file if screens already exist and need iteration *(optional)*
-- `$DESIGN_TASK` — Jira Design Task key to populate (e.g. `PROJ-123`) *(optional)*
+- `$PRD` - PRD content, Confluence URL, or initiative description *(required)*
+- `$ANALYTICS` - funnel data, drop-off rates, or session replay observations *(optional)*
+- `$FIGMA` - existing Figma file if screens already exist and need iteration *(optional)*
+- `$DESIGN_TASK` - Jira Design Task key to populate (e.g. `PROJ-123`) *(optional)*
 
 ---
 
@@ -51,7 +51,7 @@ If the problem statement or scope is missing, ask before proceeding. Do not inve
 
 ## Step 2: Write the Design Brief
 
-Use the structure below exactly. Keep every section tight. No padding. If a section has nothing meaningful to add, write "None identified" — never leave it blank or fill it with filler.
+Use the structure below exactly. Keep every section tight. No padding. If a section has nothing meaningful to add, write "None identified" - never leave it blank or fill it with filler.
 
 Do not use em dashes anywhere in the brief. Do not use horizontal line separators.
 
@@ -67,7 +67,7 @@ Do not use em dashes anywhere in the brief. Do not use horizontal line separator
 
 **The Problem**
 
-[2-3 sentences. What is broken right now, for whom, and what evidence do we have. Be specific. "Low conversion" is not a problem statement. "62% of users who reach the payment screen abandon without completing — exit survey shows the value proposition is not clear in the first scroll" is. Always cite data where available.]
+[2-3 sentences. What is broken right now, for whom, and what evidence do we have. Be specific. "Low conversion" is not a problem statement. "62% of users who reach the payment screen abandon without completing - exit survey shows the value proposition is not clear in the first scroll" is. Always cite data where available.]
 
 ---
 
@@ -104,7 +104,7 @@ so they can [achieve this outcome].
 [Exhaustive list. A designer should be able to open this section and know exactly what to produce in Figma. Call out whether each screen is net new or an iteration on an existing one.]
 
 **Flow: [Flow name]**
-- [Screen name]: [One line — what this screen must communicate or enable for the user. Not how it looks.]
+- [Screen name]: [One line - what this screen must communicate or enable for the user. Not how it looks.]
 - [Screen name]: [...]
 
 **Flow: [Second flow if applicable]**
@@ -139,15 +139,15 @@ User eligibility and account states:
 - [ ] Feature not yet available
 
 Product-specific edge cases (from PRD):
-- [ ] [Edge case 1 — extracted from PRD]
-- [ ] [Edge case 2 — extracted from PRD]
+- [ ] [Edge case 1 - extracted from PRD]
+- [ ] [Edge case 2 - extracted from PRD]
 - [ ] [Add all edge cases explicitly called out in the PRD open questions or risks sections]
 
 ---
 
 **Constraints**
 
-Technical: [Hard limits the designer must work within — e.g. "payment SDK only supports full-screen modal", "no native bottom sheet on Android below API 30"]
+Technical: [Hard limits the designer must work within - e.g. "payment SDK only supports full-screen modal", "no native bottom sheet on Android below API 30"]
 
 Brand and components: [Component library constraints, existing patterns to reuse, any brand guidelines that apply]
 
@@ -171,7 +171,7 @@ Timeline: [Target date for design handoff to tech]
 
 - Primary metric: [e.g. "Payment screen conversion improves from 38% to 55%"]
 - Supporting metric: [e.g. "Time from CVP screen to purchase confirmed reduces from 1.3 hours to under 20 minutes"]
-- Comprehension check: [e.g. "User can explain what they get for Rs. 4,999 within 30 seconds of seeing the CVP screen — validate with 5 users before handoff"]
+- Comprehension check: [e.g. "User can explain what they get for Rs. 4,999 within 30 seconds of seeing the CVP screen - validate with 5 users before handoff"]
 
 ---
 
@@ -204,23 +204,23 @@ If A or C: post to the Design Task using `editJiraIssue` with `contentFormat: "m
 Before delivering, verify:
 
 ```
-[ ] Problem statement is specific — includes data or a concrete observation, not just "low conversion"
+[ ] Problem statement is specific - includes data or a concrete observation, not just "low conversion"
 [ ] Funnel table is present, or explicitly flagged as missing with recommended tracking events
 [ ] Every screen the designer needs to produce is listed by name with a one-line description
 [ ] Edge cases section covers: payment states, loading states, errors, eligibility, and all PRD-specific cases
-[ ] Success criteria are measurable — numbers or observable user behaviours, not adjectives
-[ ] Out of scope is explicit — no ambiguity about what is excluded
-[ ] Open questions are specific — each one has a clear decision and an owner
+[ ] Success criteria are measurable - numbers or observable user behaviours, not adjectives
+[ ] Out of scope is explicit - no ambiguity about what is excluded
+[ ] Open questions are specific - each one has a clear decision and an owner
 [ ] No em dashes anywhere in the brief
-[ ] No filler — every sentence gives the designer information they could not infer themselves
+[ ] No filler - every sentence gives the designer information they could not infer themselves
 ```
 
 ---
 
 ## Key Principles
 
-- **Problems, not solutions** — describe what is broken, not how to fix it. The designer owns the how.
-- **Specific over general** — "62% drop-off at payment screen" beats "low conversion" every time. Cite data.
-- **Exhaustive edge cases** — if an edge case is not in the brief, it will not be designed for. List everything.
-- **Measurable success** — a designer needs to know when they are done. Vague criteria lead to endless revision.
-- **Crisp** — every line earns its place. If a sentence does not give the designer new information, cut it.
+- **Problems, not solutions** - describe what is broken, not how to fix it. The designer owns the how.
+- **Specific over general** - "62% drop-off at payment screen" beats "low conversion" every time. Cite data.
+- **Exhaustive edge cases** - if an edge case is not in the brief, it will not be designed for. List everything.
+- **Measurable success** - a designer needs to know when they are done. Vague criteria lead to endless revision.
+- **Crisp** - every line earns its place. If a sentence does not give the designer new information, cut it.
