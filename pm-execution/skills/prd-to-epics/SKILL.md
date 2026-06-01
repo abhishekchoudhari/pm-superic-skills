@@ -1,7 +1,6 @@
 ---
 name: prd-to-epics
 description: "Convert a PRD into Jira-ready Epics and Stories using Job Story format (When/I want/So I can) with WWA strategic context. Reads PRD from text, file, or Confluence. Accepts Figma URL for design context. Outputs Epic + Story hierarchy only — no tasks. Use when breaking down a PRD into a sprint-ready backlog."
-tool_integration: Atlassian, Figma
 ---
 
 # PRD to Epics and Stories
@@ -21,6 +20,59 @@ Each story uses a hybrid format combining **Job Stories** (When/I want/So I can)
 
 ## Step 0: Gather Inputs
 
+### Epic Structure Choice
+
+**This is the first question to ask — before parsing the PRD, before searching Jira, before anything else.**
+
+Ask the PM:
+
+> "Before I break this down — how would you like to structure this in Jira?
+>
+> **A — Single Project Epic** — One epic, all stories nested under it. Best for quick builds, focused initiatives, or work that fits within one team's sprint cycle.
+>
+> **B — Multiple Epics** — 3–7 epics grouped by user journey, feature area, or release phase. Best for large initiatives, multi-team work, or phased delivery across quarters.
+>
+> Which would you like?"
+
+- If **A**: use exactly 1 epic for the entire initiative. All stories live under it. Skip the multi-epic summary table in Step 5 and replace it with a single epic block.
+- If **B**: follow the default multi-epic flow (3–7 epics, grouped by user journey or phase).
+
+Wait for the user's answer before continuing.
+
+---
+
+### Overlapping Epic Check
+
+Before creating anything in Jira, search the board for existing epics that might overlap with this initiative. Use `searchJiraIssuesUsingJql` with a query like:
+
+```
+project = [PROJECT_KEY] AND issuetype = Epic AND summary ~ "[key initiative keywords]" ORDER BY created DESC
+```
+
+Run 1-2 searches using the most distinctive keywords from the PRD (feature name, user problem, component name). If any existing epics are found that cover similar scope, flag them before proceeding:
+
+> "I found existing epics that may overlap with this initiative:
+> - [EPIC-KEY]: [Epic summary] (Status: [status])
+> - [EPIC-KEY]: [Epic summary] (Status: [status])
+>
+> Do you want to add stories to one of these existing epics instead of creating a new one? Or confirm you want a new epic and I'll proceed."
+
+Wait for the user's answer before creating anything. If no overlapping epics are found, proceed without flagging.
+
+### Jira Project Setup Check
+
+Before creating anything in Jira, run `getJiraProjectIssueTypesMetadata` for the target project. Use the correct issue type names and IDs returned — never assume "Story" or "Epic" exist. Record:
+- The issue type for epics (usually "Epic")
+- The issue type for child work items (may be "Task", "Story", or "Sub-task" depending on the project)
+
+If no Jira project has been specified, ask: "Which Jira project and board should I create these in?"
+
+### Expected Impact Check
+
+Scan the PRD for an Expected Impact statement. Look in the success metrics, objectives, or overview sections. Extract the primary metric target as a single line (e.g. "Reduce user drop-off at step X by 20% within 60 days of launch"). You will confirm this with the PM in the pre-flight conversation before creating anything.
+
+If not found in the PRD, ask for it before proceeding.
+
 ### PRD Source Check
 
 Before proceeding, determine where the PRD lives:
@@ -33,26 +85,24 @@ Before proceeding, determine where the PRD lives:
 
      > "To pull your PRD from Confluence, please connect the Atlassian MCP server. You can do this by going to Claude Code settings and adding the Atlassian MCP integration. Once connected, re-run this command with your Confluence page URL. Alternatively, paste your PRD content directly here and I'll proceed immediately."
 
-4. **If no PRD is provided at all**, ask:
+4. **If no PRD is provided**, ask whether the user wants to:
+   - Provide a PRD now (paste, file path, or Confluence URL)
+   - Create a placeholder epic to reserve space in Jira before the PRD is ready
 
-   > "Please share your PRD. You can:
-   > - Paste it directly here
-   > - Provide a file path (e.g. `/docs/PRD-checkout.md`)
-   > - Share a Confluence page URL (requires Atlassian MCP to be connected)
-   > - Describe the feature verbally and I'll work with that"
+   If placeholder: skip Steps 1-5 and go directly to backlog/epic creation with a minimal scope note.
 
 ### Figma Source Check
 
-1. **If a Figma URL is provided** — use the Figma MCP (`get_design_context`) to fetch design context, flows, and component names. Use these to enrich story acceptance criteria with specific UI states and interactions.
-2. **If no Figma URL is provided**, ask once:
+Figma designs are often not ready when a PRD is being broken into epics. Do not block on this.
 
-   > "Do you have a Figma design file for this feature? If yes, share the URL and I'll pull in screen flows and component details to make the acceptance criteria more precise. If not, I'll proceed with what's in the PRD."
-
-   If the user says no or skips — proceed without design context.
+1. **If a Figma URL is provided** — use the Figma MCP (`get_design_context`) to fetch design context, flows, and component names. Use these to enrich story acceptance criteria with specific screen names and interaction states.
+2. **If no Figma URL is provided** — proceed without it. In acceptance criteria, note "Design: TBD — link Figma when available" rather than asking the user to wait for design.
 
 ---
 
 ## Step 1: Parse and Understand the PRD
+
+> Skip this step if no PRD is available. Go directly to backlog/epic creation with a placeholder scope note.
 
 Read the PRD carefully and extract:
 
@@ -73,8 +123,13 @@ If the PRD is missing critical sections, note them as gaps in the output but do 
 
 ## Step 2: Identify Epics
 
-Group features and capabilities into **3–7 Epics** based on:
+**Default to ONE epic per initiative.** Only propose multiple epics when:
+- The initiative explicitly spans multiple quarters or teams working in parallel
+- The PRD has distinct phases that will be picked up and completed separately, not together
 
+For small and medium initiatives: propose 1 epic. For large initiatives: propose multiple epics with a clear rationale for the split.
+
+When multiple epics ARE warranted, group features by:
 - **User journey segments** (e.g. Onboarding, Core Loop, Settings)
 - **Feature areas** (e.g. Search, Checkout, Notifications)
 - **Release phases** (e.g. Phase 1 MVP, Phase 2 Enhancements)
@@ -152,6 +207,24 @@ so I can [outcome — the value or result they gain].
 5. **Acceptance criteria** — written so QA can verify without interpretation; use numbers, states, and system responses
 6. **No tasks** — if implementation detail is needed, it belongs in the AC, not as a sub-item
 7. **Out of scope items from PRD** — do not create stories for them; reference them as excluded in the Epic's notes
+8. **Stories are conversation starters, not specifications** — the story captures intent and context; the team discovers the full implementation detail together in sprint planning and design sessions. Write enough to align intent, not enough to remove all ambiguity.
+
+### INVEST criteria (apply to every story before shipping the backlog)
+
+| Criterion | What it means | Failure signal |
+|---|---|---|
+| **Independent** | Can be developed and delivered without requiring another story to be done first | "This needs Story X to be done first" |
+| **Negotiable** | Scope, design, and implementation approach are open for team discussion | Story reads like a specification with no room for judgment |
+| **Valuable** | Delivers measurable value to users or the business on its own | Story only makes sense when combined with 3 other stories |
+| **Estimable** | Team can size it with reasonable confidence | Too vague to point, or too large to fit in one sprint |
+| **Small** | Completable in one sprint (5-13 days) | Any story estimated at L or XL should be split |
+| **Testable** | Every AC is verifiable by QA without interpretation | AC uses words like "works correctly" or "looks good" |
+
+### 3 C's of a good story (from XP)
+
+- **Card**: The story title and one-line summary. Short enough to fit on an index card. This is the placeholder for a conversation, not the conversation itself.
+- **Conversation**: The Job Story, Why, and design context. This is what the team discusses in sprint planning to align on intent and approach.
+- **Confirmation**: The Acceptance Criteria. These confirm that the conversation was understood correctly and the outcome was delivered.
 
 ---
 

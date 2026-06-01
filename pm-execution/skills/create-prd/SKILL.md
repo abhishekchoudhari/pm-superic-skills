@@ -32,14 +32,25 @@ Do not block PRD creation if MCP is unavailable. Proceed regardless.
 
 Before asking anything else, ask the user one question to determine PRD scope:
 
-> "Before we start — how big is this initiative?
-> - **Quick build** (days to 2 weeks): I'll create a one-page PRD
-> - **Medium feature** (2–6 weeks): I'll create a focused full PRD
-> - **Large initiative** (quarter or more): I'll create a comprehensive PRD with phasing, risks, and experiment design
+> "Before we start — what is the effort level for this initiative?
+> - **Low** (1–5 days dev): I'll write a 1-page PRD — overview, user stories, edge cases, 1-2 metrics, out of scope
+> - **Medium** (1–6 weeks dev): I'll write a 2-4 page PRD — problem, user stories, edge cases, 2-3 metrics, open questions (PM-level only)
+> - **High** (quarter or more): I'll write a full PRD with phasing, risks, full metric hierarchy, and experiment design
 >
 > Take your best guess — we can adjust as we go."
 
-Use the answer to calibrate output length and depth throughout.
+Use this answer to drive section selection, depth, and metric count throughout. The rules are:
+
+**Low effort PRD — 1 page max**
+Sections: Overview (3 sentences), User Stories with AC, Edge Cases, Success Metrics (1-2 primary only), Out of Scope
+Skip entirely: phasing, value proposition, market segments, guardrail metrics, detailed open questions
+
+**Medium effort PRD — 2-4 pages**
+Sections: Overview, Problem and evidence (brief), User Stories with AC, Edge Cases, Success Metrics (2-3, no guardrails unless a specific risk warrants it), Out of Scope, Open Questions (PM-level only, if genuinely unresolved)
+Skip entirely: phasing (unless 2+ distinct phases exist), value proposition, market segments
+
+**High effort PRD — full template**
+All sections apply. Include phasing only if 2+ distinct phases exist. Full metric hierarchy. Experiment design if A/B testing is relevant.
 
 **Step 3: Frame the process**
 
@@ -77,6 +88,9 @@ Then, based on gaps in their input, selectively ask from the following question 
 - Do you have a solution hypothesis, or is this still open discovery?
 - Which teams or systems will this depend on?
 - Are there hard constraints — technical, legal, regulatory, or timeline?
+
+**Existing Infrastructure (ask if comms or integrations are in scope)**
+- Are there any existing notifications (SMS, WhatsApp, email, push) already going to users for this event or related events? This prevents speccing what already exists.
 
 **Audience and Output (ask once, at the end)**
 - Who is the primary reader: engineering, design, leadership, or cross-functional?
@@ -118,6 +132,26 @@ If any of these is weak, flag it explicitly in the PRD rather than silently fill
 
 **Step 7: Apply the PRD Template**
 
+**Header block — always open with this before Section 1. This is not a numbered section.**
+
+```
+| **Product overview** |  |
+| --- | --- |
+| 📅 Target date | TBD (or date if known) |
+| 🟡 Document status | DRAFT / REVIEW / FINAL |
+| 🏃 Team members | [Names — not roles] |
+| **Quick links** |  |
+| 🎨 Designs | [Figma link or TBD] |
+| 🗃️ Work tracker | [Jira epic link or TBD] |
+| 📹 Loom demo | TBD |
+```
+
+Header rules:
+- Always include all rows. Write "TBD" if the value is not known — never omit a row.
+- Document status uses a colour emoji: 🟡 DRAFT, 🔵 REVIEW, 🟢 FINAL
+- Team members: list names, not roles
+- Figma and Jira links are mandatory — TBD is acceptable if not yet available
+
 Create a document with these 10 sections:
 
    **Context** (2-3 sentences)
@@ -144,12 +178,30 @@ Create a document with these 10 sections:
    **What does success look like**
    How would we know we have solved the problem?
    Key Results: How will you measure success? (Use SMART OKR format)
-   Present as a table to have starting point (where are we today) and end point (where do we want to get to)
-   
-   - Primary metric (the one number that matters)
-   - Supporting metrics (2-4)
-   - Guardrail metrics (what must NOT worsen)
-   - Measurement timeline
+
+   Always use this 4-column table format for metrics:
+
+   | Metric | Current | Target | Measurement |
+   |--------|---------|--------|-------------|
+   | [Name] | [Baseline or "TBD — establish at launch"] | [Number + timeframe, e.g. "45% within 90 days of launch"] | [Tool + event, e.g. "Amplitude — bottomsheet_engaged"] |
+
+   Table rules:
+   - Never leave Current blank — write "TBD — establish at launch" if unknown
+   - Target must include a timeframe — "increase X" is not a target
+   - Measurement must name the tool or event — not just "tracked in Amplitude"
+   - No "improve X" targets — always directional with a number
+
+   Metric types:
+   - **Primary metrics** — metrics with an existing baseline that directly reflect the feature's core job and are attributable to this feature. Use these first.
+   - **Secondary metrics** — new behaviours with no baseline (label as "TBD — establish at launch"), downstream signals, or metrics influenced by multiple features simultaneously.
+   - **Guardrail metrics** — what must NOT worsen. Named specifically, not "we'll monitor."
+
+   Engagement metrics priority order (when choosing which metrics to track):
+   1. Reach — users shown the feature vs total eligible
+   2. Engagement — users who interacted vs users shown
+   3. Dismissal — users who dismissed without action (negative signal)
+   4. Sentiment — NPS, app store, qualitative feedback
+   5. Outcome — downstream conversion tied to the feature's job
 
    **Market Segment(s)**
    Optional - do only if needed - validate from the user
@@ -168,9 +220,16 @@ Create a document with these 10 sections:
    - Approach overview
    - Key Features (detailed feature descriptions)
    - UX/Prototypes (wireframes, user flows)
-   - Technology (optional, only if relevant)
    - Prioritisation (P0/P1/P2)
    - Out of scope (explicit)
+   - Implementation details (optional): only include here if they directly affect product scope or user behaviour — e.g. a specific API field that determines what is shown, or a third-party SDK that changes the UX. Do not include service architecture, infra specifics, or internal API design — those belong in the tech design document that engineering produces.
+
+   **External Partners & Ops Flow** (conditional — include only when the feature depends on third-party systems)
+   - Include this section when the feature involves RTAs, KRAs, AMCs, payment gateways, compliance bodies, KYC providers, messaging vendors, or any third-party system the team does not control.
+   - **Partner table**: name | type | role in this flow.
+   - **End-to-end ops flow**: numbered steps from user action to ops cycle complete. For each step, state the normal-path behaviour AND the exception / fallback. Do not describe only the happy path.
+   - If a sequence diagram exists, embed it above the text description.
+   - Why this matters: tech and ops cannot estimate, build, or operate the feature without knowing who owns which step. Without this section, they ask the same questions repeatedly or ship the wrong assumption.
 
    **Edge Cases & Risks**
    - Edge cases with handling
@@ -178,13 +237,23 @@ Create a document with these 10 sections:
    - Rollback plan
 
    **Release**
+   - ONLY include this section if the initiative has 2 or more distinct, sequenced phases. If everything ships in a single phase, skip this section entirely.
    - Phase breakdown with scope
    - Dependencies and sequencing
    - Avoid exact dates; use relative timeframes
-   - Definition of done of a phase (how would you know when to move to next phase)
-   
+   - Definition of done per phase (how you know when to move to the next phase)
+
    **Open Questions**
-   - Explicitly unresolved items with owners
+   - This is a **post-walkthrough section**. Do NOT populate at first draft. An Open Questions table at draft time fills with questions the PM should answer before publishing, not questions reviewers raised.
+   - After the walkthrough, list only PM-level items that remain unresolved — things the PM needs to chase to close out the PRD.
+   - Do NOT include tech questions. Engineering owns their open questions in the tech design document.
+   - If no genuine PM-level unresolved questions exist, omit this section entirely.
+   - Format: Question | Owner | Deadline
+
+   **Stakeholder Q&A** (post-walkthrough only — do not include in first draft)
+   - Add this section ONLY after a walkthrough has happened. At draft time, this section does not exist.
+   - Format: numbered Q&A pairs, one per question raised. Put the reasoning in the answer, not in the question.
+   - Resolved questions live here. Anything still unresolved after the walkthrough moves to Open Questions instead.
      
 **Step 8: Use Accessible Language**
 
@@ -208,13 +277,27 @@ Always present the PRD as a draft first. Do not publish automatically. Tell the 
 
 > "Here is your PRD draft. Review it and let me know if you want to change anything. Once you confirm it is ready, I will publish it to Confluence."
 
+**Step 11b: Figma refresh (run when design becomes available after PRD is written)**
+
+Figma is rarely ready before a PRD is written. When the user shares a Figma link after the PRD already exists, do NOT rewrite the whole PRD. Run a targeted refresh instead:
+
+1. Call `get_design_context` with the Figma node ID to extract screens, flows, and component states
+2. Identify only what has changed or is newly visible:
+   - New entry points not in the original PRD
+   - User story acceptance criteria that can now reference specific screen names or states
+   - Edge cases made visible by the design (error states, empty states, loading states)
+   - Any flows or interactions that contradict the PRD's current spec
+3. Present only the sections that need updating — do not re-output the whole PRD
+4. Ask the user to confirm the changes before applying them
+
 **Step 12: Confirm and Publish to Confluence**
 
 Only after the user explicitly says the PRD is ready to publish:
 
-1. If Atlassian MCP is connected, ask: "Which Confluence space should I publish this to? (e.g. PROD, Growth, Platform — or paste a space URL)"
-2. Use `createConfluencePage` to publish the PRD to the specified space in markdown format
-3. Return the Confluence page URL to the user once created
+1. Ask the user which Confluence space the PRD should be published to. Always publish to a shared product or team space — never to a personal space (space keys starting with `~`) even if the user has write access there. Personal spaces are for drafts and notes, not PRDs.
+2. If the user's space has a parent page where PRDs live (e.g. a page titled "PRDs"), search for it using `searchConfluenceUsingCql` with a query like `space = "[SPACE_KEY]" AND title = "PRDs"`. If found, create the new page as a child of that parent. If not found, create at the root of the space and note the location to the user.
+3. Use `createConfluencePage` to publish the PRD in markdown format.
+4. Return the Confluence page URL to the user once created.
 
 If MCP is not connected, save the PRD as a markdown file instead: `PRD-[product-name].md` and confirm the file path to the user.
 
@@ -224,7 +307,14 @@ If MCP is not connected, save the PRD as a markdown file instead: `PRD-[product-
 - Link each section back to the overall strategy
 - Flag assumptions clearly so the team can validate them
 - Keep the document concise but complete
-- Avoid using acronyms, dont use em dashes anywhere
+- Avoid using acronyms, don't use em dashes anywhere
+
+**Confluence formatting rules — apply when publishing:**
+- No horizontal rules (`---`) between sections. Confluence renders these as visual dividers that break PDF export.
+- No `>` symbol at the start of table cells. Confluence parses this as a blockquote, creating an unwanted vertical bar. Write "above 30%" not ">30%", "below 10%" not "<10%".
+- Bold only for metrics that are the core of a claim, or key decisions that need to stand out when scanning. Never bold entire sentences or to fill visual space.
+- No emojis in body content (sections 1–10). Emojis are only used in the header block metadata table.
+- Tables preferred over bullet lists for structured comparisons.
 
 ## The 5 Core Skills
 

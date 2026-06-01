@@ -68,6 +68,15 @@ Before appending any row, apply dedup in order:
 2. **Claude semantic fallback**: Only if no Thread ID match. Call `checkDuplicate(subject, context, existingTasks)` — handles Re:/Fwd: prefixes, paraphrasing, and cross-initiative duplicates (e.g. `"YourTeam VendorA VendorB product feature certification"` → `"product feature certification"`). On API failure, treat as new.
 3. **New row**: If neither tier matches, append with all fields from the extended `analyzeRisk()` call.
 
+**Rule 13 — Initiative data belongs in the `_Config` tab, not in code.**
+Sheet IDs, vendor domains, deadlines, and team context live in the `_Config` tab of the Master Dashboard. Script constants hold only values that never change per-initiative (column indices, API endpoints). Any data that changes per-initiative or per-deployment must be editable without a code deploy. When adding new per-initiative fields, always add a column to `_Config` and read it in `loadInitiatives()`. Never add a hardcoded constant for initiative-specific data.
+
+**Rule 14 — Formatting and validation calls never belong in the sync path.**
+`setupDropdownsAndFormatting()` makes multiple Sheets API calls per initiative. Run this manually via `formatAllSheets()` or `formatSheet()`, triggered on demand. Sync functions (`syncInitiative`, `processNewThreads`) must never call formatting or validation functions. Mixing them with sync multiplies API call cost for something the user triggers a few times a month.
+
+**Rule 15 — The status list is the canonical vocabulary. Keep it minimal.**
+Status values appear in dropdowns, Claude prompts, email HTML, and conditional formatting. Every status added multiplies maintenance surface. The canonical list is: `Open / In Progress / In Review / On Hold / Done / Closed`. Before adding a new status, check if an existing one covers the intent. If a new status is genuinely needed, remove the one it replaces and update the Claude prompt, dropdown, and conditional format rule together. Overlapping statuses create ambiguity in Claude's classification.
+
 ---
 
 ## Phase 0 — Preflight (run on every invocation)
