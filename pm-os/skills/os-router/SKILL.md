@@ -18,6 +18,14 @@ You are the navigation layer of the pm-superic-skills operating system. When a P
 ```
 pm-superic-skills
 │
+├── pm-os                        Workflows and navigation (this plugin)
+│   ├── build-evidence-prd       ⛓ Research → synthesis → gate → PRD (6-phase pipeline)
+│   ├── run-feature-lifecycle    ⛓ PRD → epics → sprint → test scenarios → release notes
+│   ├── run-launch-readiness     ⛓ Pre-mortem → stakeholder alignment → QA → go/no-go
+│   ├── run-weekly-review        ⛓ Metrics + shipped + OKR pulse → weekly brief
+│   ├── triage-to-roadmap        ⛓ Feature requests → VoC → opportunity map → roadmap recs
+│   └── run-discovery-sprint     ⛓ Interview script → synthesis → OST → prioritized recommendation
+│
 ├── pm-execution                 Build and ship product
 │   ├── create-prd               Write a comprehensive PRD (8-section template)
 │   ├── review-prd               Score and stress-test an existing PRD
@@ -39,7 +47,10 @@ pm-superic-skills
 │   ├── summarize-meeting        Structured meeting notes + action items
 │   ├── pm-design-brief          Write a design brief for a feature
 │   ├── test-scenarios           QA test cases from user stories
-│   └── dummy-dataset            Generate realistic test data
+│   ├── dummy-dataset            Generate realistic test data
+│   ├── draft-async-update       Turn bullet notes into polished Slack / email / Notion update
+│   ├── write-working-backwards  Press release + internal FAQ before writing the PRD
+│   └── run-quarterly-cycle      ⛓ OKRs → outcome roadmap → stakeholder update
 │
 ├── pm-product-discovery         Understand the problem space
 │   ├── brainstorm-ideas-new     Generate ideas for a new product area
@@ -68,8 +79,9 @@ pm-superic-skills
 │   ├── pricing-strategy         Pricing model design and optimization
 │   ├── ansoff-matrix            Growth direction (market/product matrix)
 │   ├── swot-analysis            SWOT analysis
-│   └── pestle-analysis          PESTLE macro analysis
-│       porters-five-forces       Industry competitive forces analysis
+│   ├── pestle-analysis          PESTLE macro analysis
+│   │   porters-five-forces       Industry competitive forces analysis
+│   └── plan-new-product         ⛓ Assumptions → lean canvas → value prop → beachhead
 │
 ├── pm-market-research           Know your market and customers
 │   ├── competitor-analysis      Deep competitive analysis
@@ -81,7 +93,8 @@ pm-superic-skills
 │   ├── customer-journey-map     Map the full customer journey
 │   ├── find-research            Locate relevant research and data
 │   ├── sentiment-analysis       Analyze sentiment in feedback / reviews
-│   └── user-research-synthesis  Synthesize qualitative research findings
+│   ├── user-research-synthesis  Synthesize qualitative research findings
+│   └── analyze-competitive-position  ⛓ Competitor analysis → sentiment → CI monitoring
 │
 ├── pm-go-to-market              Launch and position in market
 │   ├── gtm-strategy             Full go-to-market strategy
@@ -107,7 +120,9 @@ pm-superic-skills
 │   ├── funnel-analysis          Diagnose drop-off in any conversion funnel
 │   ├── feature-adoption-analysis  Measure breadth, depth, frequency, Aha moment
 │   ├── growth-accounting        Decompose MAU/MRR into new/retained/churned
-│   └── product-metrics-dashboard  Design 3-tier metric hierarchy + dashboard spec
+│   ├── product-metrics-dashboard  Design 3-tier metric hierarchy + dashboard spec
+│   ├── analyze-unit-economics   CAC, LTV, payback across SaaS/marketplace/fintech
+│   └── diagnose-product-health  ⛓ Growth + retention + funnel + adoption → health brief
 │
 ├── pm-project-management        Run the program
 │   └── expert-pm-tracker        Track and manage a product initiative
@@ -161,10 +176,31 @@ pm-superic-skills
 | Audit competitive threats | `swot-analysis` / `porters-five-forces` | pm-product-strategy |
 | Build a lean canvas for a new idea | `lean-canvas` | pm-product-strategy |
 
+### Daily and Weekly Rituals
+
+| If you need to... | Use this command | Plugin |
+|------------------|-----------------|--------|
+| Run the Monday weekly review (metrics + OKR pulse + weekly focus) | `run-weekly-review` | pm-os |
+| Turn CS tickets / NPS / reviews into roadmap recommendations | `triage-to-roadmap` | pm-os |
+| Run a structured discovery sprint from script to stakeholder recommendation | `run-discovery-sprint` | pm-os |
+
+### Chained Workflows (multi-skill pipelines)
+
+| If you need to... | Use this command | Plugin |
+|------------------|-----------------|--------|
+| Build a PRD grounded in research — adapts to what you have | `build-evidence-prd` | pm-os |
+| Run the full feature lifecycle from idea to release notes | `run-feature-lifecycle` | pm-os |
+| Run a pre-launch readiness check with go/no-go verdict | `run-launch-readiness` | pm-os |
+| Run the full quarterly cycle (OKRs → roadmap → stakeholder update) | `run-quarterly-cycle` | pm-execution |
+| Build the strategic foundation for a new product (0-to-1) | `plan-new-product` | pm-product-strategy |
+| Build a full competitive picture with sentiment + monitoring | `analyze-competitive-position` | pm-market-research |
+| Get a comprehensive product health report (growth + retention + funnel + adoption) | `diagnose-product-health` | pm-data-analytics |
+
 ### Execution and Delivery
 
 | If you need to... | Use this skill | Plugin |
 |------------------|---------------|--------|
+| Write a Working Backwards doc (press release + FAQ) before speccing | `write-working-backwards` | pm-execution |
 | Write a PRD from scratch | `create-prd` | pm-execution |
 | Review or score an existing PRD | `review-prd` | pm-execution |
 | Facilitate a PRD walkthrough with your team | `prd-walkthrough` | pm-execution |
@@ -191,6 +227,7 @@ pm-superic-skills
 | Map stakeholders and build a comms plan | `stakeholder-map` | pm-execution |
 | Write a leadership / exec update | `executive-stakeholder-update` | pm-execution |
 | Turn meeting notes into action items | `summarize-meeting` | pm-execution |
+| Turn rough notes into a polished Slack / email / Notion update | `draft-async-update` | pm-execution |
 
 ### Go-to-Market and Launch
 
@@ -219,6 +256,8 @@ pm-superic-skills
 | Diagnose drop-off in an onboarding or conversion funnel | `funnel-analysis` | pm-data-analytics |
 | Measure how well a feature is being adopted | `feature-adoption-analysis` | pm-data-analytics |
 | Decompose MAU or revenue growth into new/retained/churned | `growth-accounting` | pm-data-analytics |
+| Model CAC, LTV, payback period across business models | `analyze-unit-economics` | pm-data-analytics |
+| Get a full product health report across all dimensions | `diagnose-product-health` ⛓ | pm-data-analytics |
 
 ### Utilities
 
