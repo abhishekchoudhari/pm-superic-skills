@@ -103,7 +103,11 @@ pm-superic-skills
 │   ├── data-analysis            Analyze a dataset or metric trend
 │   ├── ab-test-analysis         Design or interpret an A/B test
 │   ├── cohort-analysis          Retention and cohort breakdown
-│   └── sql-queries              Write SQL for product analytics
+│   ├── sql-queries              Write SQL for product analytics
+│   ├── funnel-analysis          Diagnose drop-off in any conversion funnel
+│   ├── feature-adoption-analysis  Measure breadth, depth, frequency, Aha moment
+│   ├── growth-accounting        Decompose MAU/MRR into new/retained/churned
+│   └── product-metrics-dashboard  Design 3-tier metric hierarchy + dashboard spec
 │
 ├── pm-project-management        Run the program
 │   └── expert-pm-tracker        Track and manage a product initiative
@@ -207,10 +211,14 @@ pm-superic-skills
 | If you need to... | Use this skill | Plugin |
 |------------------|---------------|--------|
 | Define the metrics dashboard for a product area | `metrics-dashboard` | pm-product-discovery |
+| Design a production metrics dashboard with alert thresholds | `product-metrics-dashboard` | pm-data-analytics |
 | Analyze a dataset or understand a metric movement | `data-analysis` | pm-data-analytics |
 | Design or interpret an A/B test | `ab-test-analysis` | pm-data-analytics |
 | Run a retention or cohort analysis | `cohort-analysis` | pm-data-analytics |
 | Write SQL for a product analytics query | `sql-queries` | pm-data-analytics |
+| Diagnose drop-off in an onboarding or conversion funnel | `funnel-analysis` | pm-data-analytics |
+| Measure how well a feature is being adopted | `feature-adoption-analysis` | pm-data-analytics |
+| Decompose MAU or revenue growth into new/retained/churned | `growth-accounting` | pm-data-analytics |
 
 ### Utilities
 
