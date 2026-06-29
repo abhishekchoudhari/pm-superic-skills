@@ -47,7 +47,7 @@
       "id": "pm-go-to-market",
       "name": "PM Go-to-Market",
       "description": "Beachhead segments, ICPs, messaging, growth loops, GTM motions, battlecards, and competitive intelligence.",
-      "commands": ["/pm-go-to-market:build-growth-strategy", "/pm-go-to-market:create-battlecard", "/pm-go-to-market:generate-ci-brief", "/pm-go-to-market:define-north-star"]
+      "commands": ["/pm-go-to-market:build-growth-strategy", "/pm-go-to-market:create-battlecard", "/pm-go-to-market:generate-ci-brief"]
     },
     {
       "id": "pm-marketing-growth",
