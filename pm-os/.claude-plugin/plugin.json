@@ -1,7 +1,7 @@
 {
   "name": "pm-os",
-  "version": "1.0.0",
-  "description": "The navigation layer for pm-superic-skills. The OS router maps any PM situation, task, or question to the right skill across all 8 plugins — covering discovery, strategy, execution, go-to-market, analytics, and research.",
+  "version": "1.1.0",
+  "description": "The navigation layer for pm-superic-skills. Routes any PM situation to the right skill across all 9 plugins. Also provides chained workflow commands for the full feature lifecycle, discovery sprints, evidence-backed PRDs, weekly reviews, and signal-to-roadmap triage.",
   "author": {
     "name": "Abhishek Choudhari",
     "url": "https://www.linkedin.com/in/abhishekchoudhari/"
