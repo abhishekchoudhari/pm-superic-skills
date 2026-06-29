@@ -1,13 +1,19 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "pm-superic-skills",
-  "version": "1.0.2",
-  "description": "Structured AI workflows for better product decisions. 65 domain-specific skills and 36 chained workflows across 8 PM plugins — from discovery to strategy, execution, launch, and growth.",
+  "version": "1.0.3",
+  "description": "Structured AI workflows for better product decisions. 65+ PM skills and chained workflows across 10 plugins \u2014 from discovery to strategy, execution, launch, and growth.",
   "owner": {
     "name": "Abhishek Choudhari",
     "url": "https://www.linkedin.com/in/abhishekchoudhari/"
   },
   "plugins": [
+    {
+      "name": "pm-os",
+      "description": "The navigation layer for pm-superic-skills. Routes any PM situation to the right skill across all 10 plugins. Includes chained workflow commands for the full feature lifecycle, discovery sprints, evidence-backed PRDs, weekly reviews, and signal-to-roadmap triage.",
+      "source": "./pm-os",
+      "category": "product-management"
+    },
     {
       "name": "pm-product-discovery",
       "description": "Product discovery skills for PMs: ideation, experiments, assumption testing, feature prioritization, and customer interview synthesis.",
