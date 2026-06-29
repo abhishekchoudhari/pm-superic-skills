@@ -1,0 +1,65 @@
+{
+  "title": "PM Skills Marketplace",
+  "description": "The AI operating system for product managers. 80+ PM skills and 19 chained workflow commands across 9 plugins — covering discovery, strategy, execution, go-to-market, market research, analytics, and more.",
+  "author": {
+    "name": "Abhishek Choudhari",
+    "url": "https://www.linkedin.com/in/abhishekchoudhari/"
+  },
+  "license": "MIT",
+  "plugins": [
+    {
+      "id": "pm-os",
+      "name": "PM Operating System",
+      "description": "Navigation, daily rituals, and cross-plugin chained workflows. Start here when you are not sure which skill to use or want to run a multi-step workflow end-to-end.",
+      "commands": ["/pm-os:help", "/pm-os:build-evidence-prd", "/pm-os:run-feature-lifecycle", "/pm-os:run-launch-readiness", "/pm-os:run-weekly-review", "/pm-os:triage-to-roadmap", "/pm-os:run-discovery-sprint"]
+    },
+    {
+      "id": "pm-execution",
+      "name": "PM Execution",
+      "description": "Day-to-day product management: PRDs, OKRs, roadmaps, sprints, retros, release notes, pre-mortems, stakeholder management, user stories, async updates, and working backwards documents.",
+      "commands": ["/pm-execution:write-prd", "/pm-execution:plan-okrs", "/pm-execution:plan-outcome-roadmap", "/pm-execution:run-sprint", "/pm-execution:run-pre-mortem", "/pm-execution:summarize-meeting", "/pm-execution:map-stakeholders", "/pm-execution:write-stories", "/pm-execution:generate-test-scenarios", "/pm-execution:generate-data", "/pm-execution:draft-async-update", "/pm-execution:write-working-backwards", "/pm-execution:run-quarterly-cycle"]
+    },
+    {
+      "id": "pm-product-discovery",
+      "name": "PM Product Discovery",
+      "description": "Ideation, experiments, assumption testing, opportunity solution trees, and customer interviews.",
+      "commands": ["/pm-product-discovery:run-discovery", "/pm-product-discovery:generate-ideas", "/pm-product-discovery:analyze-feature-requests", "/pm-product-discovery:run-interview", "/pm-product-discovery:define-product-metrics"]
+    },
+    {
+      "id": "pm-product-strategy",
+      "name": "PM Product Strategy",
+      "description": "Vision, business models, pricing, competitive landscape, and 0-to-1 product foundation.",
+      "commands": ["/pm-product-strategy:build-product-strategy", "/pm-product-strategy:design-business-model", "/pm-product-strategy:define-value-proposition", "/pm-product-strategy:scan-market", "/pm-product-strategy:design-pricing", "/pm-product-strategy:plan-new-product"]
+    },
+    {
+      "id": "pm-market-research",
+      "name": "PM Market Research",
+      "description": "Personas, segmentation, journey maps, market sizing, competitor analysis, and competitive intelligence.",
+      "commands": ["/pm-market-research:map-user-research", "/pm-market-research:analyze-competitors", "/pm-market-research:summarize-research", "/pm-market-research:analyze-competitive-position"]
+    },
+    {
+      "id": "pm-data-analytics",
+      "name": "PM Data Analytics",
+      "description": "Funnels, cohorts, growth accounting, feature adoption, unit economics, A/B tests, SQL, and full product health diagnostics.",
+      "commands": ["/pm-data-analytics:write-sql", "/pm-data-analytics:analyze-ab-test", "/pm-data-analytics:analyze-cohorts", "/pm-data-analytics:analyze-funnel", "/pm-data-analytics:analyze-growth-accounting", "/pm-data-analytics:analyze-unit-economics", "/pm-data-analytics:diagnose-product-health"]
+    },
+    {
+      "id": "pm-go-to-market",
+      "name": "PM Go-to-Market",
+      "description": "Beachhead segments, ICPs, messaging, growth loops, GTM motions, battlecards, and competitive intelligence.",
+      "commands": ["/pm-go-to-market:build-growth-strategy", "/pm-go-to-market:create-battlecard", "/pm-go-to-market:generate-ci-brief", "/pm-go-to-market:define-north-star"]
+    },
+    {
+      "id": "pm-marketing-growth",
+      "name": "PM Marketing and Growth",
+      "description": "Marketing ideas, positioning, value propositions, naming, and North Star metrics.",
+      "commands": ["/pm-marketing-growth:create-marketing-toolkit", "/pm-marketing-growth:define-north-star"]
+    },
+    {
+      "id": "pm-toolkit",
+      "name": "PM Toolkit",
+      "description": "PM utilities: resume review, legal documents, and grammar checking.",
+      "commands": ["/pm-toolkit:review-resume-fit", "/pm-toolkit:draft-privacy-policy", "/pm-toolkit:draft-nda", "/pm-toolkit:review-grammar"]
+    }
+  ]
+}
