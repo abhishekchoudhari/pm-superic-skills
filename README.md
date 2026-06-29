@@ -10,17 +10,22 @@
 
 Designed for Claude Code and Cowork. Skills compatible with other AI assistants.
 
-## Start Here
+## Start Here — Situation to Skill Router
 
-New to this? → `/pm-os:help`
-Research a problem? → `/pm-os:run-discovery-sprint`
-Build an evidence-backed PRD? → `/pm-os:build-evidence-prd`
-Run the full feature lifecycle? → `/pm-os:run-feature-lifecycle`
-Weekly review ritual? → `/pm-os:run-weekly-review`
-Turn feedback into roadmap? → `/pm-os:triage-to-roadmap`
-Writing a PRD? → `/pm-execution:write-prd`
-Planning a sprint? → `/pm-execution:run-sprint`
-Setting quarterly OKRs? → `/pm-execution:plan-okrs`
+| What you are trying to solve | Command to run | Primary Plugin |
+|------------------------------|----------------|----------------|
+| **New to this or not sure where to start** | `/pm-os:help` | `pm-os` |
+| **Research a problem end-to-end** | `/pm-os:run-discovery-sprint` | `pm-os` |
+| **Build an evidence-backed PRD** | `/pm-os:build-evidence-prd` | `pm-os` |
+| **Run the full feature lifecycle (PRD → sprint → release)** | `/pm-os:run-feature-lifecycle` | `pm-os` |
+| **Weekly metrics and OKR pulse ritual** | `/pm-os:run-weekly-review` | `pm-os` |
+| **Turn customer feedback into roadmap recommendations** | `/pm-os:triage-to-roadmap` | `pm-os` |
+| **Writing a PRD from a feature idea** | `/pm-execution:write-prd` | `pm-execution` |
+| **Planning a sprint or running a retro** | `/pm-execution:run-sprint` | `pm-execution` |
+| **Setting quarterly OKRs** | `/pm-execution:plan-okrs` | `pm-execution` |
+| **Competitive analysis and positioning** | `/pm-market-research:analyze-competitive-position` | `pm-market-research` |
+| **Diagnose a product health metric** | `/pm-data-analytics:diagnose-product-health` | `pm-data-analytics` |
+| **New product from zero — strategy and canvas** | `/pm-product-strategy:plan-new-product` | `pm-product-strategy` |
 
 If this project helps you, ⭐ the repo.
 
